@@ -3,7 +3,7 @@
 Node::Node(int key, int value, int level) {
   key_ = key;
   value_ = value;
-  forward = std::vector<Node*>(level + 1, nullptr);
+  forward = std::vector<Node*>(level, nullptr);
 }
 
 Node::~Node() { forward.clear(); }
@@ -43,9 +43,9 @@ Node* SkipList::create_node(int key, int value, int level) {
 
 bool SkipList::insert_element(int key, int value) {
   Node* cur = header_;
-  std::vector<Node*> update(max_level_ + 1, nullptr);
+  std::vector<Node*> update(max_level_, nullptr);
 
-  for (int i = skip_list_level_; i >= 0; i--) {
+  for (int i = skip_list_level_ - 1; i >= 0; i--) {
     while (cur->forward[i] && cur->forward[i]->key() < key) {
       cur = cur->forward[i];
     }
@@ -59,14 +59,14 @@ bool SkipList::insert_element(int key, int value) {
 
   int random_level = get_random_level();
   if (random_level > skip_list_level_) {
-    for (int i = skip_list_level_ + 1; i <= random_level; i++) {
+    for (int i = skip_list_level_; i < random_level; i++) {
       update[i] = header_;
     }
     skip_list_level_ = random_level;
   }
 
   Node* insert_node = create_node(key, value, random_level);
-  for (int i = 0; i <= random_level; i++) {
+  for (int i = 0; i < random_level; i++) {
     insert_node->forward[i] = update[i]->forward[i];
     update[i]->forward[i] = insert_node;
   }
@@ -75,7 +75,7 @@ bool SkipList::insert_element(int key, int value) {
 
 bool SkipList::search_element(int key, int& value) {
   Node* cur = header_;
-  for (int i = skip_list_level_; i >= 0; i--) {
+  for (int i = skip_list_level_ - 1; i >= 0; i--) {
     while (cur->forward[i] && cur->forward[i]->key() < key) {
       cur = cur->forward[i];
     }
@@ -91,9 +91,9 @@ bool SkipList::search_element(int key, int& value) {
 
 bool SkipList::delete_element(int key) {
   Node* cur = header_;
-  std::vector<Node*> update(max_level_ + 1, nullptr);
+  std::vector<Node*> update(max_level_, nullptr);
 
-  for (int i = skip_list_level_; i >= 0; i--) {
+  for (int i = skip_list_level_ - 1; i >= 0; i--) {
     while (cur->forward[i] && cur->forward[i]->key() < key) {
       cur = cur->forward[i];
     }
@@ -105,7 +105,7 @@ bool SkipList::delete_element(int key) {
     return false;
   }
 
-  for (int i = 0; i <= skip_list_level_; i++) {
+  for (int i = 0; i < skip_list_level_; i++) {
     if (update[i]->forward[i] != cur) {
       break;
     }
@@ -113,7 +113,7 @@ bool SkipList::delete_element(int key) {
   }
 
   while (skip_list_level_ > 0 &&
-         header_->forward[skip_list_level_] == nullptr) {
+         header_->forward[skip_list_level_ - 1] == nullptr) {
     skip_list_level_--;
   }
   delete cur;
@@ -122,7 +122,7 @@ bool SkipList::delete_element(int key) {
 
 void SkipList::display_list() {
   std::cout << "*************************" << std::endl;
-  for (int i = skip_list_level_; i >= 0; i--) {
+  for (int i = skip_list_level_ - 1; i >= 0; i--) {
     Node* node = header_->forward[i];
     std::cout << "L " << i << ": ";
     while (node) {
